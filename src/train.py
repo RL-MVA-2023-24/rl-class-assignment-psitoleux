@@ -3,8 +3,10 @@ from env_hiv import HIVPatient
 from parsers import get_train_parser
 
 import numpy as np
+import random
 import torch
 from torch import nn, optim
+
 
 import pickle
 
@@ -15,6 +17,12 @@ env = TimeLimit(
 
 args = get_train_parser()
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+def greedy_action(network, state):
+    with torch.no_grad():
+        Q = network(torch.Tensor(state).unsqueeze(0).to(device))
+        return torch.argmax(Q).item()
 
 class ReplayBuffer:
     def __init__(self, capacity, device):
