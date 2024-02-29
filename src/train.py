@@ -139,7 +139,7 @@ class ProjectAgent:
     
 class FFModel(nn.Module):
     def __init__(self, state_dim, action_dim, nhid=64):
-        super(Model, self).__init__()
+        super(FFModel, self).__init__()
         self.fc1 = nn.Linear(state_dim, nhid)
         self.fc2 = nn.Linear(nhid, nhid)
         self.fc3 = nn.Linear(nhid, action_dim)
