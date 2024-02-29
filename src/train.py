@@ -52,6 +52,8 @@ class ProjectAgent:
         self.epsilon_min = args.epsilon_min
         self.epsilon_delay = args.epsilon_delay
         self.epsilon_stop = args.epsilon_stop
+        self.epsilon_step = (self.epsilon_max-self.epsilon_min)/self.epsilon_stop
+
         
         self.memory = ReplayBuffer(args.buffer_size, device)
 
