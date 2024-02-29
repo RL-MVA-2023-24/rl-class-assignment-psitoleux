@@ -149,3 +149,5 @@ class FFModel(nn.Module):
         x = torch.relu(self.fc2(x))
         x = self.fc3(x)
         return torch.softmax(x, dim=1)
+
+dqn = ProjectAgent(FFModel(args.state_dim, args.action_dim))
