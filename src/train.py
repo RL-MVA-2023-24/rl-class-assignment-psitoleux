@@ -123,7 +123,7 @@ class ProjectAgent:
                 action = greedy_action(self.model, state)
 
             # step
-            next_state, reward, done, trunc = env.step(action)
+            next_state, reward, done, trunc, _ = env.step(action)
             self.memory.append(state, action, reward, next_state, done)
             episode_cum_reward += reward
 
