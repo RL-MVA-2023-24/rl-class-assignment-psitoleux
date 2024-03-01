@@ -112,6 +112,7 @@ class ProjectAgent:
         epsilon = self.epsilon_max
         step = 0
         max_episode = self.nb_epoch
+        self.model.train()
 
         while episode < max_episode:
             # update epsilon
@@ -159,14 +160,16 @@ class FFModel(nn.Module):
         super(FFModel, self).__init__()
         self.fc1 = nn.Linear(state_dim, nhid)
         
-        self.batch_norm = nn.BatchNorm1d(nhid)
+        self.layer_norm = nn.LayerNorm(nhid)
+        
+        self.nlayers = nlayers
         
         self.hidden_layers = nn.ModuleList([nn.Linear(nhid, nhid) for _ in range(nlayers)])
         
         self.fc3 = nn.Linear(nhid, action_dim)
 
     def forward(self, x):
-        x = torch.relu( self.batch_norm(self.fc1(x)))
+        x = torch.relu( self.layer_norm(self.fc1(x)))
         
         for layer in self.hidden_layers:
             x = torch.relu(layer(x))
