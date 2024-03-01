@@ -20,6 +20,9 @@ def get_train_parser():
     parser.add_argument('--batch_size', type=int, default=32, help='batch size')
     
     parser.add_argument('--buffer_size', type=int, default=1000000, help='replay buffer size')
+    
+    parser.add_argument('--nhid', type=int, default=64, help='hidden layer size')
+    parser.add_argument('--nlayers', type=int, default=1, help='number of layers')
 
 
     return parser.parse_args()

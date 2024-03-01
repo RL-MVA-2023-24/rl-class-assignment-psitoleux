@@ -113,6 +113,7 @@ class ProjectAgent:
 
         while episode < max_episode:
             # update epsilon
+            print('episode')
             if step > self.epsilon_delay:
                 epsilon = max(self.epsilon_min, epsilon-self.epsilon_step)
 
@@ -153,17 +154,23 @@ class ProjectAgent:
     
     
 class FFModel(nn.Module):
-    def __init__(self, state_dim, action_dim, nhid=64):
+    def __init__(self, state_dim, action_dim, nlayers = 1, nhid=64):
         super(FFModel, self).__init__()
         self.fc1 = nn.Linear(state_dim, nhid)
-        self.fc2 = nn.Linear(nhid, nhid)
+        
+        self.hidden_layers = nn.ModuleList([nn.Linear(nhid, nhid) for _ in range(nlayers)])
+        
         self.fc3 = nn.Linear(nhid, action_dim)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
-        x = torch.relu(self.fc2(x))
+        
+        for layer in self.hidden_layers:
+            x = torch.relu(layer(x))
+        
         x = self.fc3(x)
         return torch.softmax(x, dim=1)
 
-dqn = ProjectAgent(FFModel(args.state_dim, args.action_dim))
+dqn = ProjectAgent(FFModel(args.state_dim, args.action_dim, args.nlayers, args.nhid))
 dqn.train()
+dqn.save()
