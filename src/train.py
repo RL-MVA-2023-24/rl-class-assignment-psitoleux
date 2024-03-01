@@ -113,7 +113,6 @@ class ProjectAgent:
 
         while episode < max_episode:
             # update epsilon
-            print('episode')
             if step > self.epsilon_delay:
                 epsilon = max(self.epsilon_min, epsilon-self.epsilon_step)
 
