@@ -7,11 +7,13 @@ import random
 import torch
 from torch import nn, optim
 
+from decimal import Decimal
+
 
 import pickle
 
 env = TimeLimit(
-    env=HIVPatient(domain_randomization=False), max_episode_steps=200
+    env=HIVPatient(domain_randomization=False, logscale=True), max_episode_steps=200
 )  # The time wrapper limits the number of steps in an episode at 200.
 # Now is the floor is yours to implement the agent and train it.
 
@@ -139,7 +141,7 @@ class ProjectAgent:
             if done:
                 episode += 1
                 print("Episode ", '{:3d}'.format(episode), 
-                      ", epsilon ", '{:6.2f}'.format(epsilon), 
+                      ", epsilon ", '{:6.2f}'.format(Decimal(epsilon)), 
                       ", batch size ", '{:5d}'.format(len(self.memory)), 
                       ", episode return ", '{:4.1f}'.format(episode_cum_reward),
                       sep='')
@@ -157,12 +159,14 @@ class FFModel(nn.Module):
         super(FFModel, self).__init__()
         self.fc1 = nn.Linear(state_dim, nhid)
         
+        self.batch_norm = nn.BatchNorm1d(nhid)
+        
         self.hidden_layers = nn.ModuleList([nn.Linear(nhid, nhid) for _ in range(nlayers)])
         
         self.fc3 = nn.Linear(nhid, action_dim)
 
     def forward(self, x):
-        x = torch.relu(self.fc1(x))
+        x = torch.relu( self.batch_norm(self.fc1(x)))
         
         for layer in self.hidden_layers:
             x = torch.relu(layer(x))
