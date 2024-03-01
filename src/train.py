@@ -101,6 +101,7 @@ class ProjectAgent:
             self.optimizer.step() 
     
     def train(self):
+        max_episode_steps = 200
         
         episode_return = []
         episode = 0
@@ -112,7 +113,6 @@ class ProjectAgent:
 
         while episode < max_episode:
             # update epsilon
-            print('step', step)
             if step > self.epsilon_delay:
                 epsilon = max(self.epsilon_min, epsilon-self.epsilon_step)
 
@@ -123,7 +123,7 @@ class ProjectAgent:
                 action = greedy_action(self.model, state)
 
             # step
-            next_state, reward, done, trunc, _ = env.step(action)
+            next_state, reward, done, trunc = env.step(action)
             self.memory.append(state, action, reward, next_state, done)
             episode_cum_reward += reward
 
@@ -132,6 +132,10 @@ class ProjectAgent:
 
             # next transition
             step += 1
+            if step == max_episode_steps:
+                step = 0
+                done = True
+            
             if done:
                 episode += 1
                 print("Episode ", '{:3d}'.format(episode), 
