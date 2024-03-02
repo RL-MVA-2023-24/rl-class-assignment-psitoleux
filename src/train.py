@@ -68,7 +68,7 @@ class ProjectAgent:
         self.memory = ReplayBuffer(args.buffer_size, device)
 
         self.optimizer = optim.AdamW(self.model.parameters(), lr=args.lr, weight_decay=args.wd)
-        self.criterion = nn.MSELoss()
+        self.criterion = nn.SmoothL1Loss()
         self.nb_epoch = args.nb_epoch
         self.batch_size = args.batch_size
         
@@ -131,7 +131,7 @@ class ProjectAgent:
             episode_cum_reward += reward
 
             # train
-            #self.gradient_step()
+            self.gradient_step()
 
             # next transition
             step += 1
