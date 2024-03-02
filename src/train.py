@@ -43,7 +43,7 @@ class ReplayBuffer:
 # ENJOY!
 class ProjectAgent:
     
-    def __init__(self, model, args=args):
+    def __init__(self, model, args):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.state_dim = args.state_dim
         self.action_dim = args.action_dim
