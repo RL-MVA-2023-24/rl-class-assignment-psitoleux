@@ -103,14 +103,16 @@ class ProjectAgent:
             next_state, reward, done, trunc, _ = env.step(action)
             self.memory.append(state, action, reward, next_state, done)
             if done or trunc:
+                if trunc:
+                    print("Episode truncated")
+                else:
+                    print("Episode finished")
                 state, _ = env.reset()
             else:
                 state = next_state
 
     
     def train(self, env):
-        max_episode_steps = 200
-        
         episode_return = []
         episode = 0
         episode_cum_reward = 0
@@ -138,14 +140,8 @@ class ProjectAgent:
 
             # train
             self.gradient_step()
-
-            # next transition
-            step += 1
-            if step == max_episode_steps:
-                step = 0
-                done = True
             
-            if done:
+            if done or trunc:
                 episode += 1
                 print("Episode ", '{:3d}'.format(episode), 
                       ", epsilon ", '{:6.2f}'.format(epsilon), 
