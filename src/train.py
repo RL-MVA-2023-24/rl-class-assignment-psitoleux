@@ -9,6 +9,8 @@ from torch import nn, optim
 
 from decimal import Decimal
 
+from tqdm.auto import tqdm, trange
+
 
 import pickle
 
@@ -42,6 +44,8 @@ class ReplayBuffer:
         return list(map(lambda x:torch.Tensor(np.array(x)).to(self.device), list(zip(*batch))))
     def __len__(self):
         return len(self.data)
+
+
 
 # You have to implement your own agent.
 # Don't modify the methods names and signatures, but you can add methods.
@@ -101,8 +105,20 @@ class ProjectAgent:
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step() 
+            
+    def fill_buffer(self, env):
+        state, _ = env.reset()
+        for i in trange(self.memory.capacity):
+            action = self.act(state)
+            next_state, reward, done, trunc, _ = env.step(action)
+            agent.memory.append(state, action, reward, next_state, done)
+            if done or trunc:
+                state, _ = env.reset()
+            else:
+                state = next_state
+
     
-    def train(self):
+    def train(self, env):
         max_episode_steps = 200
         
         episode_return = []
@@ -178,5 +194,7 @@ class FFModel(nn.Module):
         return torch.softmax(x, dim=1)
 
 dqn = ProjectAgent(FFModel(args.state_dim, args.action_dim, args.nlayers, args.nhid))
-dqn.train()
+dqn.fill_buffer(env)
+
+dqn.train(env)
 dqn.save(path='')
