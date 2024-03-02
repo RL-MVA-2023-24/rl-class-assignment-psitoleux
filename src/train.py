@@ -131,7 +131,7 @@ class ProjectAgent:
             episode_cum_reward += reward
 
             # train
-            self.gradient_step()
+            #self.gradient_step()
 
             # next transition
             step += 1
