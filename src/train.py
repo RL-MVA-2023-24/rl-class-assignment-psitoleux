@@ -142,9 +142,9 @@ class ProjectAgent:
             if done:
                 episode += 1
                 print("Episode ", '{:3d}'.format(episode), 
-                      ", epsilon ", '{:6.2f}'.format(Decimal(epsilon)), 
+                      ", epsilon ", '{:6.2f}'.format(epsilon), 
                       ", batch size ", '{:5d}'.format(len(self.memory)), 
-                      ", episode return ", '{:4.1f}'.format(episode_cum_reward),
+                      ", episode return ", '{:4.1f}'.format(Decimal(episode_cum_reward)),
                       sep='')
                 state, _ = env.reset()
                 episode_return.append(episode_cum_reward)
@@ -169,7 +169,7 @@ class FFModel(nn.Module):
         self.fc3 = nn.Linear(nhid, action_dim)
 
     def forward(self, x):
-        x = torch.relu( self.layer_norm(self.fc1(x)))
+        x = self.layer_norm(torch.relu( (self.fc1(x))))
         
         for layer in self.hidden_layers:
             x = torch.relu(layer(x))
@@ -179,4 +179,4 @@ class FFModel(nn.Module):
 
 dqn = ProjectAgent(FFModel(args.state_dim, args.action_dim, args.nlayers, args.nhid))
 dqn.train()
-dqn.save()
+dqn.save(path='')
