@@ -14,15 +14,6 @@ from tqdm.auto import tqdm, trange
 
 import pickle
 
-env = TimeLimit(
-    env=HIVPatient(domain_randomization=False, logscale=False), max_episode_steps=200
-)  # The time wrapper limits the number of steps in an episode at 200.
-# Now is the floor is yours to implement the agent and train it.
-
-args = get_train_parser()
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 def greedy_action(network, state):
     with torch.no_grad():
         Q = network(torch.Tensor(state).unsqueeze(0).to(device))
@@ -79,8 +70,7 @@ class ProjectAgent:
     
     
     def act(self, observation, use_random=False):
-        
-        return self.model(observation)
+        return greedy_action(self.model, observation)
 
     def save(self, path):
         f = open(self.filename, 'wb')
@@ -193,8 +183,21 @@ class FFModel(nn.Module):
         x = self.fc3(x)
         return torch.softmax(x, dim=1)
 
-dqn = ProjectAgent(FFModel(args.state_dim, args.action_dim, args.nlayers, args.nhid))
-dqn.fill_buffer(env)
 
-dqn.train(env)
-dqn.save(path='')
+if __name__ == "__main__":
+    args = get_train_parser()
+
+    env = TimeLimit(
+        env=HIVPatient(domain_randomization=False, logscale=False), max_episode_steps=200
+    )  # The time wrapper limits the number of steps in an episode at 200.
+    # Now is the floor is yours to implement the agent and train it.
+
+    args = get_train_parser()
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    dqn = ProjectAgent(FFModel(args.state_dim, args.action_dim, args.nlayers, args.nhid))
+    dqn.fill_buffer(env)
+
+    dqn.train(env)
+    dqn.save(path='')
