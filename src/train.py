@@ -185,18 +185,15 @@ class FFModel(nn.Module):
 
 
 if __name__ == "__main__":
-    args = get_train_parser()
-
     env = TimeLimit(
         env=HIVPatient(domain_randomization=False, logscale=False), max_episode_steps=200
     )  # The time wrapper limits the number of steps in an episode at 200.
     # Now is the floor is yours to implement the agent and train it.
 
     args = get_train_parser()
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    dqn = ProjectAgent(FFModel(args.state_dim, args.action_dim, args.nlayers, args.nhid))
+    dqn = ProjectAgent(FFModel(args.state_dim, args.action_dim, args.nlayers, args.nhid), args=args)
     dqn.fill_buffer(env)
 
     dqn.train(env)
