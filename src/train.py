@@ -101,7 +101,7 @@ class ProjectAgent:
         for i in trange(self.memory.capacity):
             action = self.act(state)
             next_state, reward, done, trunc, _ = env.step(action)
-            agent.memory.append(state, action, reward, next_state, done)
+            self.memory.append(state, action, reward, next_state, done)
             if done or trunc:
                 state, _ = env.reset()
             else:
