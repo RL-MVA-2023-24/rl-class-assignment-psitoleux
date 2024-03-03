@@ -178,6 +178,7 @@ class ProjectAgent:
     def train(self, env):
         episode_return = []
         MC_avg_total_reward = []   # NEW NEW NEW
+        best_MC_avg_total_reward = 0
         MC_avg_discounted_reward = []   # NEW NEW NEW
         V_init_state = []   # NEW NEW NEW
         episode = 0
@@ -220,11 +221,12 @@ class ProjectAgent:
             if done or trunc:
                 episode += 1
                 # Monitoring
-                if self.monitoring_nb_trials>0 and episode%self.monitoring_frequency==0:
+                if self.monitoring_nb_trials>0 and episode%self.monitoring_frequency==1:
                     MC_dr, MC_tr = self.MC_eval(env, self.monitoring_nb_trials)    # NEW NEW NEW
                     V0 = self.V_initial_state(env, self.monitoring_nb_trials)   # NEW NEW NEW
                     MC_avg_total_reward.append(MC_tr)   # NEW NEW NEW
                     MC_avg_discounted_reward.append(MC_dr)   # NEW NEW NEW
+                    best_MC_avg_total_reward = max(best_MC_avg_total_reward, MC_tr)
                     V_init_state.append(V0)   # NEW NEW NEW
                     episode_return.append(episode_cum_reward)   # NEW NEW NEW
                     print("Episode ", '{:2d}'.format(episode), 
@@ -236,12 +238,18 @@ class ProjectAgent:
                           ", V0 ", '{:6.2f}'.format(V0),
                           ", loss ", '{:6.2f}'.format(current_loss),
                           sep='')
+                    
+                    if best_MC_avg_total_reward == MC_tr:
+                        print('Best model, saving...')
+                        self.save()
+                    
                 else:
                     episode_return.append(episode_cum_reward)
                     print("Episode ", '{:2d}'.format(episode), 
                           ", epsilon ", '{:6.2f}'.format(epsilon), 
                           ", batch size ", '{:4d}'.format(len(self.memory)), 
                           ", ep return ", '{:4.1f}'.format(episode_cum_reward), 
+                          ", loss ", '{:6.2f}'.format(current_loss),
                           sep='')
 
                 
