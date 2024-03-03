@@ -7,7 +7,11 @@ def get_train_parser():
     
     parser.add_argument('--state_dim', type=int, default=6,  help='state dimension')
     parser.add_argument('--action_dim', type=int, default=4, help='action dimension')
-    parser.add_argument('--gamma', type=float, default=0.95, help='discount factor')
+    parser.add_argument('--gamma', type=float, default=0.98, help='discount factor')
+    
+    parser.add_argument('--update_target_strategy', type=str, default='ema', choices=['replace', 'ema'], help='update target strategy')
+    parser.add_argument('--update_target_freq', type=int, default=20, help='update target frequency')
+    parser.add_argument('--update_target_tau', type=float, default=0.005, help='update target tau')
     
     parser.add_argument('--epsilon_max', type=float, default=1.0, help='epsilon max')
     parser.add_argument('--epsilon_min', type=float, default=0.01, help='epsilon min')
@@ -23,6 +27,8 @@ def get_train_parser():
     
     parser.add_argument('--nhid', type=int, default=64, help='hidden layer size')
     parser.add_argument('--nlayers', type=int, default=1, help='number of layers')
+    
+    parser.add_argument('--monitoring_nb_trials', type=int, default=1, help='number of trials for monitoring')
 
 
     return parser.parse_args()
