@@ -31,6 +31,7 @@ def get_train_parser():
     parser.add_argument('--nlayers', type=int, default=1, help='number of layers')
     
     parser.add_argument('--monitoring_nb_trials', type=int, default=1, help='number of trials for monitoring')
+    parser.add_argument('--monitoring_frequency', type=int, default=20, help='monitoring frequency')
 
 
     return parser.parse_args()

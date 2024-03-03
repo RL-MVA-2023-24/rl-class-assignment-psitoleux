@@ -13,12 +13,6 @@ from copy import deepcopy
 from tqdm.auto import tqdm, trange
 
 
-import pickle
-
-def greedy_action(network, state):
-    with torch.no_grad():
-        Q = network(torch.Tensor(state).unsqueeze(0).to(device))
-        return torch.argmax(Q).item()
 
 class ReplayBuffer:
     def __init__(self, capacity, device):
@@ -60,9 +54,8 @@ class FFModel(nn.Module):
         
         for layer in self.hidden_layers:
             x = torch.relu(layer(x))
-        
-        x = self.fc3(x)
-        return torch.softmax(x, dim=1)
+
+        return self.fc3(x)
 
 
 args = get_train_parser()
@@ -75,17 +68,16 @@ class ProjectAgent:
     def __init__(self, model=FFModel(args.state_dim, args.action_dim, args.nlayers, args.nhid)
                  , args=args):
         
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         
         self.state_dim = args.state_dim
         self.action_dim = args.action_dim
     
-        self.model = model.to(device)
+        self.model = model.to(self.device)
         self.model_name = 'model'
-        self.filename = self.model_name + '.pkl'
         
-        self.target_model = deepcopy(self.model).to(device)
+        self.target_model = deepcopy(self.model).to(self.device)
         self.update_target_strategy = args.update_target_strategy
         self.update_target_freq = args.update_target_freq
         self.update_target_tau = args.update_target_tau
@@ -98,25 +90,32 @@ class ProjectAgent:
         self.epsilon_step = (self.epsilon_max-self.epsilon_min)/self.epsilon_stop
 
         
-        self.memory = ReplayBuffer(args.buffer_size, device)
+        self.memory = ReplayBuffer(args.buffer_size, self.device)
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
+        
         self.criterion = nn.SmoothL1Loss() if args.criterion == 'l1' else nn.MSELoss()
         self.nb_epoch = args.nb_epoch
         self.batch_size = args.batch_size
         self.nb_gradient_steps = args.nb_gradient_steps
         
         self.monitoring_nb_trials = args.monitoring_nb_trials
+        self.monitoring_frequency = args.monitoring_frequency
 
+    def greedy_action(self, network, state):
+        with torch.no_grad():
+            Q = network(torch.Tensor(state).unsqueeze(0).to(self.device))
+            return torch.argmax(Q).item()
     
     def act(self, observation, use_random=False):
-        return greedy_action(self.model, observation)
+        return self.greedy_action(self.model, observation)
 
     def save(self, path='./model.pt'):
-        torch.save(self.model, path)
+        torch.save(self.model.state_dict(), path)
 
     def load(self):
-        self.model = torch.load('./model.pt', map_location=torch.device('cpu'))
+        state_dict = torch.load('./model.pt', map_location=torch.device('cpu'))
+        self.model.load_state_dict(state_dict)
         
     def MC_eval(self, env, nb_trials):   # NEW NEW NEW
         MC_total_reward = []
@@ -129,7 +128,7 @@ class ProjectAgent:
             discounted_reward = 0
             step = 0
             while not (done or trunc):
-                a = greedy_action(self.model, x)
+                a = self.greedy_action(self.model, x)
                 y,r,done,trunc,_ = env.step(a)
                 x = y
                 total_reward += r
@@ -146,7 +145,6 @@ class ProjectAgent:
                 x,_ = env.reset()
                 val.append(self.model(torch.Tensor(x).unsqueeze(0).to(device)).max().item())
         return np.mean(val)
-    
 
     
     def gradient_step(self):
@@ -161,6 +159,7 @@ class ProjectAgent:
             self.optimizer.step() 
             
             return loss.item()
+        
         else:
             return 1e9
             
@@ -197,7 +196,7 @@ class ProjectAgent:
             if np.random.rand() < epsilon:
                 action = env.action_space.sample()
             else:
-                action = greedy_action(self.model, state)
+                action = self.greedy_action(self.model, state)
             # step
             next_state, reward, done, trunc, _ = env.step(action)
             self.memory.append(state, action, reward, next_state, done)
@@ -221,7 +220,7 @@ class ProjectAgent:
             if done or trunc:
                 episode += 1
                 # Monitoring
-                if self.monitoring_nb_trials>0:
+                if self.monitoring_nb_trials>0 and episode%self.monitoring_frequency==0:
                     MC_dr, MC_tr = self.MC_eval(env, self.monitoring_nb_trials)    # NEW NEW NEW
                     V0 = self.V_initial_state(env, self.monitoring_nb_trials)   # NEW NEW NEW
                     MC_avg_total_reward.append(MC_tr)   # NEW NEW NEW
