@@ -134,7 +134,9 @@ class ProjectAgent:
             loss = self.criterion(QXA, update.unsqueeze(1))
             self.optimizer.zero_grad()
             loss.backward()
-            self.optimizer.step() 
+            self.optimizer.step()
+            
+            return loss.item()
             
     def fill_buffer(self, env):
         state, _ = env.reset()
@@ -174,7 +176,7 @@ class ProjectAgent:
             episode_cum_reward += reward
             # train
             for _ in range(self.nb_gradient_steps): 
-                self.gradient_step()
+                current_loss = self.gradient_step()
             # update target network if needed
             if self.update_target_strategy == 'replace':
                 if step % self.update_target_freq == 0: 
@@ -205,6 +207,7 @@ class ProjectAgent:
                           ", MC tot ", '{:6.2f}'.format(MC_tr),
                           ", MC disc ", '{:6.2f}'.format(MC_dr),
                           ", V0 ", '{:6.2f}'.format(V0),
+                          ", loss ", '{:6.2f}'.format(current_loss),
                           sep='')
                 else:
                     episode_return.append(episode_cum_reward)
@@ -254,7 +257,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     dqn = ProjectAgent(FFModel(args.state_dim, args.action_dim, args.nlayers, args.nhid), args=args)
-    #dqn.fill_buffer(env)
+    dqn.fill_buffer(env)
 
     dqn.train(env)
     dqn.save(path='')
