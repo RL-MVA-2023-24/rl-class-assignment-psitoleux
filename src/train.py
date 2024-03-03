@@ -256,6 +256,7 @@ if __name__ == "__main__":
     # Now is the floor is yours to implement the agent and train it.
 
     args = get_train_parser()
+    print(args)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     dqn = ProjectAgent(FFModel(args.state_dim, args.action_dim, args.nlayers, args.nhid), args=args)
