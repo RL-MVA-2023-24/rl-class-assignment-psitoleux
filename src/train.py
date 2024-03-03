@@ -184,7 +184,7 @@ class ProjectAgent:
                 model_state_dict = self.model.state_dict()
                 tau = self.update_target_tau
                 for key in model_state_dict:
-                    target_state_dict[key] = tau*model_state_dict + (1-tau)*target_state_dict
+                    target_state_dict[key] = tau*model_state_dict[key] + (1-tau)*target_state_dict[key]
                 target_model.load_state_dict(target_state_dict)
             # next transition
             step += 1
