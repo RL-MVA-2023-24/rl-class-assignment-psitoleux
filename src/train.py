@@ -137,6 +137,8 @@ class ProjectAgent:
             self.optimizer.step()
             
             return loss.item()
+        else:
+            return 1e9
             
     def fill_buffer(self, env):
         state, _ = env.reset()
@@ -257,7 +259,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     dqn = ProjectAgent(FFModel(args.state_dim, args.action_dim, args.nlayers, args.nhid), args=args)
-    dqn.fill_buffer(env)
+    #dqn.fill_buffer(env)
 
     dqn.train(env)
     dqn.save(path='')

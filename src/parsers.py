@@ -15,8 +15,8 @@ def get_train_parser():
     
     parser.add_argument('--epsilon_max', type=float, default=1.0, help='epsilon max')
     parser.add_argument('--epsilon_min', type=float, default=0.01, help='epsilon min')
-    parser.add_argument('--epsilon_delay', type=int, default=20, help='epsilon delay')
-    parser.add_argument('--epsilon_stop', type=int, default=1000, help='epsilon stop')
+    parser.add_argument('--epsilon_delay', type=int, default=400, help='epsilon delay')
+    parser.add_argument('--epsilon_stop', type=int, default=5000, help='epsilon stop')
     
     parser.add_argument('--lr', type=float, default=0.0001, help='learning rate')
     parser.add_argument('--wd', type=float, default=0.01, help='weight decay')
