@@ -22,6 +22,7 @@ def get_train_parser():
     parser.add_argument('--wd', type=float, default=0.01, help='weight decay')
     parser.add_argument('--nb_epoch', type=int, default=100, help='number of epochs')
     parser.add_argument('--batch_size', type=int, default=32, help='batch size')
+    parser.add_argument('--nb_gradient_steps', type=int, default=2, help='number of gradient steps')
     
     parser.add_argument('--buffer_size', type=int, default=1000000, help='replay buffer size')
     

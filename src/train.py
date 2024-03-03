@@ -73,6 +73,7 @@ class ProjectAgent:
         self.criterion = nn.SmoothL1Loss()
         self.nb_epoch = args.nb_epoch
         self.batch_size = args.batch_size
+        self.nb_gradient_steps = args.nb_gradient_steps
         
         self.monitoring_nb_trials = args.monitoring_nb_trials
 
