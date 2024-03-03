@@ -54,6 +54,8 @@ class ProjectAgent:
         self.filename = self.model_name + '.pkl'
         
         
+        
+        
         self.target_model = deepcopy(self.model).to(device)
         self.update_target_strategy = args.update_target_strategy
         self.update_target_freq = args.update_target_freq
@@ -87,11 +89,7 @@ class ProjectAgent:
         f.close() 
 
     def load(self):
-        f = open(self.filename, 'rb')
-        tmp_dict = pickle.load(f)
-        f.close()          
-
-        self.__dict__.update(tmp_dict) 
+        self.model = torch.load(self.filename, map_location=torch.device('cpu'))
         
     def MC_eval(self, env, nb_trials):   # NEW NEW NEW
         MC_total_reward = []
@@ -140,9 +138,9 @@ class ProjectAgent:
         else:
             return 1e9
             
-    def fill_buffer(self, env):
+    def fill_buffer(self, env, nb_example=10_000):
         state, _ = env.reset()
-        for i in trange(self.memory.capacity):
+        for i in trange(nb_example):
             action = self.act(state)
             next_state, reward, done, trunc, _ = env.step(action)
             self.memory.append(state, action, reward, next_state, done)
@@ -229,6 +227,11 @@ class ProjectAgent:
 class FFModel(nn.Module):
     def __init__(self, state_dim, action_dim, nlayers = 1, nhid=64):
         super(FFModel, self).__init__()
+        
+        self.nlayers = nlayers
+        self.nhid = nhid
+        
+        
         self.fc1 = nn.Linear(state_dim, nhid)
         
         self.layer_norm = nn.LayerNorm(nhid)
@@ -260,7 +263,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     dqn = ProjectAgent(FFModel(args.state_dim, args.action_dim, args.nlayers, args.nhid), args=args)
-    #dqn.fill_buffer(env)
+    dqn.fill_buffer(env)
 
     dqn.train(env)
     dqn.save(path='')
