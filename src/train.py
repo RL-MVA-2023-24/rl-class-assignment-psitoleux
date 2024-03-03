@@ -8,6 +8,7 @@ import torch
 from torch import nn, optim
 
 from decimal import Decimal
+from copy import deepcopy
 
 from tqdm.auto import tqdm, trange
 
