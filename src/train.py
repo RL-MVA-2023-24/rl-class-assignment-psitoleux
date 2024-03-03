@@ -1,4 +1,4 @@
-from gym.wrappers import TimeLimit
+from gymnasium.wrappers import TimeLimit
 from env_hiv import HIVPatient
 from parsers import get_train_parser
 
@@ -37,24 +37,53 @@ class ReplayBuffer:
     def __len__(self):
         return len(self.data)
 
+class FFModel(nn.Module):
+    def __init__(self, state_dim, action_dim, nlayers = 1, nhid=64):
+        super(FFModel, self).__init__()
+        
+        self.nlayers = nlayers
+        self.nhid = nhid
+        
+        
+        self.fc1 = nn.Linear(state_dim, nhid)
+        
+        self.layer_norm = nn.LayerNorm(nhid)
+        
+        self.nlayers = nlayers
+        
+        self.hidden_layers = nn.ModuleList([nn.Linear(nhid, nhid) for _ in range(nlayers)])
+        
+        self.fc3 = nn.Linear(nhid, action_dim)
 
+    def forward(self, x):
+        x = self.layer_norm(torch.relu( (self.fc1(x))))
+        
+        for layer in self.hidden_layers:
+            x = torch.relu(layer(x))
+        
+        x = self.fc3(x)
+        return torch.softmax(x, dim=1)
+
+
+args = get_train_parser()
 
 # You have to implement your own agent.
 # Don't modify the methods names and signatures, but you can add methods.
 # ENJOY!
 class ProjectAgent:
     
-    def __init__(self, model, args):
+    def __init__(self, model=FFModel(args.state_dim, args.action_dim, args.nlayers, args.nhid)
+                 , args=args):
+        
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        
         self.state_dim = args.state_dim
         self.action_dim = args.action_dim
     
         self.model = model.to(device)
         self.model_name = 'model'
         self.filename = self.model_name + '.pkl'
-        
-        
-        
         
         self.target_model = deepcopy(self.model).to(device)
         self.update_target_strategy = args.update_target_strategy
@@ -72,7 +101,7 @@ class ProjectAgent:
         self.memory = ReplayBuffer(args.buffer_size, device)
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
-        self.criterion = nn.SmoothL1Loss()
+        self.criterion = nn.SmoothL1Loss() if args.criterion == 'l1' else nn.MSELoss()
         self.nb_epoch = args.nb_epoch
         self.batch_size = args.batch_size
         self.nb_gradient_steps = args.nb_gradient_steps
@@ -83,13 +112,11 @@ class ProjectAgent:
     def act(self, observation, use_random=False):
         return greedy_action(self.model, observation)
 
-    def save(self, path):
-        f = open(self.filename, 'wb')
-        pickle.dump(self.__dict__, f, 2)
-        f.close() 
+    def save(self, path='./model.pt'):
+        torch.save(self.model, path)
 
     def load(self):
-        self.model = torch.load(self.filename, map_location=torch.device('cpu'))
+        self.model = torch.load('./model.pt', map_location=torch.device('cpu'))
         
     def MC_eval(self, env, nb_trials):   # NEW NEW NEW
         MC_total_reward = []
@@ -125,14 +152,13 @@ class ProjectAgent:
     def gradient_step(self):
         if len(self.memory) > self.batch_size:
             X, A, R, Y, D = self.memory.sample(self.batch_size)
-            QYmax = self.model(Y).max(1)[0].detach()
-            #update = torch.addcmul(R, self.gamma, 1-D, QYmax)
+            QYmax = self.target_model(Y).max(1)[0].detach()
             update = torch.addcmul(R, 1-D, QYmax, value=self.gamma)
             QXA = self.model(X).gather(1, A.to(torch.long).unsqueeze(1))
             loss = self.criterion(QXA, update.unsqueeze(1))
             self.optimizer.zero_grad()
             loss.backward()
-            self.optimizer.step()
+            self.optimizer.step() 
             
             return loss.item()
         else:
@@ -160,6 +186,8 @@ class ProjectAgent:
         state, _ = env.reset()
         epsilon = self.epsilon_max
         step = 0
+        
+        self.model.train()
         
         while episode < self.nb_epoch:
             # update epsilon
@@ -224,33 +252,6 @@ class ProjectAgent:
                 state = next_state
         return episode_return, MC_avg_discounted_reward, MC_avg_total_reward, V_init_state    
     
-class FFModel(nn.Module):
-    def __init__(self, state_dim, action_dim, nlayers = 1, nhid=64):
-        super(FFModel, self).__init__()
-        
-        self.nlayers = nlayers
-        self.nhid = nhid
-        
-        
-        self.fc1 = nn.Linear(state_dim, nhid)
-        
-        self.layer_norm = nn.LayerNorm(nhid)
-        
-        self.nlayers = nlayers
-        
-        self.hidden_layers = nn.ModuleList([nn.Linear(nhid, nhid) for _ in range(nlayers)])
-        
-        self.fc3 = nn.Linear(nhid, action_dim)
-
-    def forward(self, x):
-        x = self.layer_norm(torch.relu( (self.fc1(x))))
-        
-        for layer in self.hidden_layers:
-            x = torch.relu(layer(x))
-        
-        x = self.fc3(x)
-        return torch.softmax(x, dim=1)
-
 
 if __name__ == "__main__":
     env = TimeLimit(
@@ -266,4 +267,4 @@ if __name__ == "__main__":
     dqn.fill_buffer(env)
 
     dqn.train(env)
-    dqn.save(path='')
+    dqn.save()
