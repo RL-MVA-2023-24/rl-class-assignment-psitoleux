@@ -92,10 +92,8 @@ class ProjectAgent:
         
         self.memory = ReplayBuffer(args.buffer_size, self.device)
 
-        self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
-        self.scheduler = optim.lr_scheduler.OneCycleLR(self.optimizer, max_lr=args.lr
-                                                       , total_steps=args.nb_epoch*200, pct_start=0.1
-                                                       , final_div_factor=1000)
+        self.optimizer = optim.AdamW(self.model.parameters(), lr=args.lr, weight_decay=args.wd)
+        #self.scheduler = optim.lr_scheduler.OneCycleLR(self.optimizer, max_lr=args.lr, total_steps=args.nb_epoch*200, pct_start=0.1, final_div_factor=1000)
         
         self.criterion = nn.SmoothL1Loss() if args.criterion == 'l1' else nn.MSELoss()
         self.nb_epoch = args.nb_epoch
@@ -209,7 +207,7 @@ class ProjectAgent:
             for _ in range(self.nb_gradient_steps): 
                 current_loss = self.gradient_step()
             
-            self.scheduler.step()    
+            #self.scheduler.step()    
             
             # update target network if needed
             if self.update_target_strategy == 'replace':
@@ -238,7 +236,7 @@ class ProjectAgent:
                     print("Episode ", '{:2d}'.format(episode), 
                           ", epsilon ", '{:6.2f}'.format(epsilon), 
                           ", batch size ", '{:4d}'.format(len(self.memory)), 
-                          ", ep return ", '{:4.1f}'.format(np.log10(episode_cum_reward)), 
+                          ", ep return ", '{:4.2f}'.format(np.log10(episode_cum_reward)), 
                           ", MC tot ", '{:6.2f}'.format(MC_tr),
                           ", MC disc ", '{:6.2f}'.format(MC_dr),
                           ", V0 ", '{:6.2f}'.format(V0),
@@ -254,7 +252,7 @@ class ProjectAgent:
                     print("Episode ", '{:2d}'.format(episode), 
                           ", epsilon ", '{:6.2f}'.format(epsilon), 
                           ", batch size ", '{:4d}'.format(len(self.memory)), 
-                          ", ep return ", '{:4.1f}'.format(np.log10(episode_cum_reward)), 
+                          ", ep return ", '{:4.2f}'.format(np.log10(episode_cum_reward)), 
                           ", loss ", '{:6.2f}'.format(current_loss),
                           sep='')
 
