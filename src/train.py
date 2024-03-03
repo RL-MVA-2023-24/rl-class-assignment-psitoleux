@@ -147,7 +147,7 @@ class ProjectAgent:
                 state = next_state
 
     
-    def train(self, env, max_episode=self.nb_epoch):
+    def train(self, env):
         episode_return = []
         MC_avg_total_reward = []   # NEW NEW NEW
         MC_avg_discounted_reward = []   # NEW NEW NEW
@@ -158,7 +158,7 @@ class ProjectAgent:
         epsilon = self.epsilon_max
         step = 0
         
-        while episode < max_episode:
+        while episode < self.nb_epoch:
             # update epsilon
             if step > self.epsilon_delay:
                 epsilon = max(self.epsilon_min, epsilon-self.epsilon_step)
