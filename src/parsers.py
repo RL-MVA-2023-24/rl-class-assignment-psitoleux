@@ -25,7 +25,7 @@ def get_train_parser():
     parser.add_argument('--nb_gradient_steps', type=int, default=2, help='number of gradient steps')
     parser.add_argument('--criterion', type=str, default='mse', choices=['mse', 'l1'], help='criterion')
     
-    parser.add_argument('--buffer_size', type=int, default=1000000, help='replay buffer size')
+    parser.add_argument('--buffer_size', type=int, default=100000, help='replay buffer size')
     
     parser.add_argument('--nhid', type=int, default=64, help='hidden layer size')
     parser.add_argument('--nlayers', type=int, default=1, help='number of layers')
