@@ -93,7 +93,7 @@ class ProjectAgent:
         self.memory = ReplayBuffer(args.buffer_size, self.device)
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr,) # weight_decay=args.wd)
-        self.scheduler = optim.lr_scheduler.OneCycleLR(self.optimizer, max_lr=args.lr, total_steps=args.nb_epoch*200, pct_start=0.1, final_div_factor=1000)
+        self.scheduler = optim.lr_scheduler.OneCycleLR(self.optimizer, max_lr=args.lr, total_steps=args.nb_epoch*200, pct_start=0.1, final_div_factor=100)
         
         self.criterion = nn.SmoothL1Loss() if args.criterion == 'l1' else nn.MSELoss()
         self.nb_epoch = args.nb_epoch
