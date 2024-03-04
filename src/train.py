@@ -10,8 +10,6 @@ from torch import nn, optim
 from decimal import Decimal
 from copy import deepcopy
 
-from tqdm.auto import tqdm, trange
-
 
 
 class ReplayBuffer:
@@ -168,7 +166,7 @@ class ProjectAgent:
             
     def fill_buffer(self, env, nb_example=10_000):
         state, _ = env.reset()
-        for i in trange(nb_example):
+        for i in range(nb_example):
             action = self.act(state)
             next_state, reward, done, trunc, _ = env.step(action)
             self.memory.append(state, action, reward, next_state, done)
