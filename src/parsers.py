@@ -28,7 +28,7 @@ def get_train_parser():
     parser.add_argument('--buffer_size', type=int, default=100000, help='replay buffer size')
     
     parser.add_argument('--nhid', type=int, default=128, help='hidden layer size')
-    parser.add_argument('--nlayers', type=int, default=3, help='number of layers')
+    parser.add_argument('--nlayers', type=int, default=4, help='number of layers')
     parser.add_argument('--activation', type=str, default='relu', choices=['gelu', 'relu'], help='activation function')
     
     parser.add_argument('--monitoring_nb_trials', type=int, default=1, help='number of trials for monitoring')
