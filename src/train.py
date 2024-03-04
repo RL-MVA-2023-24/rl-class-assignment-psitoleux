@@ -32,7 +32,7 @@ class ReplayBuffer:
         return len(self.data)
 
 class FFModel(nn.Module):
-    def __init__(self, state_dim, action_dim, nlayers = 1, nhid=64):
+    def __init__(self, state_dim, action_dim, nlayers = 1, nhid=64, activation='relu'):
         super(FFModel, self).__init__()
         
         self.nlayers = nlayers
@@ -49,7 +49,7 @@ class FFModel(nn.Module):
         
         self.fc3 = nn.Linear(nhid, action_dim)
         
-        self.activation = nn.GELU()
+        self.activation = nn.ReLU() if activation == 'relu' else nn.GELU()
 
     def forward(self, x):
         x = self.layer_norm(self.activation( (self.fc1(x))))
@@ -67,7 +67,7 @@ args = get_train_parser()
 # ENJOY!
 class ProjectAgent:
     
-    def __init__(self, model=FFModel(args.state_dim, args.action_dim, args.nlayers, args.nhid)
+    def __init__(self, model=FFModel(args.state_dim, args.action_dim, args.nlayers, args.nhid, args.activation)
                  , args=args):
         
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -280,4 +280,4 @@ if __name__ == "__main__":
     dqn.fill_buffer(env)
 
     dqn.train(env)
-    dqn.save()
+    dqn.save('./last_model.pt')
