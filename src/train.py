@@ -48,12 +48,14 @@ class FFModel(nn.Module):
         self.hidden_layers = nn.ModuleList([nn.Linear(nhid, nhid) for _ in range(nlayers)])
         
         self.fc3 = nn.Linear(nhid, action_dim)
+        
+        self.activation = nn.GELU()
 
     def forward(self, x):
-        x = self.layer_norm(torch.relu( (self.fc1(x))))
+        x = self.layer_norm(self.activation( (self.fc1(x))))
         
         for layer in self.hidden_layers:
-            x = torch.relu(layer(x))
+            x = self.activation(layer(x))
 
         return self.fc3(x)
 
@@ -92,7 +94,7 @@ class ProjectAgent:
         
         self.memory = ReplayBuffer(args.buffer_size, self.device)
 
-        self.optimizer = optim.AdamW(self.model.parameters(), lr=args.lr, weight_decay=args.wd)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr,) # weight_decay=args.wd)
         #self.scheduler = optim.lr_scheduler.OneCycleLR(self.optimizer, max_lr=args.lr, total_steps=args.nb_epoch*200, pct_start=0.1, final_div_factor=1000)
         
         self.criterion = nn.SmoothL1Loss() if args.criterion == 'l1' else nn.MSELoss()
