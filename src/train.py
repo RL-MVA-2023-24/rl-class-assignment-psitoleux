@@ -90,7 +90,7 @@ class ProjectAgent:
         self.epsilon_step = (self.epsilon_max-self.epsilon_min)/self.epsilon_stop
 
         
-        self.memory = ReplayBuffera(args.buffer_size, self.device)
+        self.memory = ReplayBuffer(args.buffer_size, self.device)
 
         self.optimizer = optim.AdamW(self.model.parameters(), lr=args.lr, weight_decay=args.wd)
         self.scheduler = optim.lr_scheduler.OneCycleLR(self.optimizer, max_lr=args.lr, total_steps=args.nb_epoch*200, pct_start=0.1, final_div_factor=100)
